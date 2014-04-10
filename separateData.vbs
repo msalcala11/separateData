@@ -59,13 +59,16 @@ Sub filterSheetByEDCname(mainWB As Workbook, ByVal sheetName As String, ByVal ed
     Dim r As Range
     Set r = mainWB.Sheets(sheetName).UsedRange
 
+    Dim edcWorkbook As Workbook
+    Set edcWorkbook = Workbooks(edcName & ".xls")
+
+    Debug.Print edcWorkbook.Sheets.Count
+
     Debug.Print sheetName
     Debug.Print edcName
     Debug.Print r.Rows.Count
 
     'Dim filteredRange As Range
-
-
     r.AutoFilter _
          field:=13, _
          Criteria1:=edcName, _
@@ -80,5 +83,9 @@ Sub AddNew(ByVal bookName As String)
             .Title = bookName
             .SaveAs Filename:=ThisWorkbook.Path & "\" & bookName & ".xls"
         End With
+    Application.DisplayAlerts = False
+    NewBook.Sheets("Sheet2").Delete
+    NewBook.Sheets("Sheet3").Delete
+    Application.DisplayAlerts = True
 End Sub
 
