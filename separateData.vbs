@@ -3,44 +3,34 @@ Sub separateData()
     Dim mainWB As Workbook
     Set mainWB = ActiveWorkbook
 
-    ' 'Lets grab the EDC names
-    ' Dim EDCnameRange As Range
-    ' Set EDCnameRange = ActiveWorkbook.Sheets("Index").Range("E2:K2")
-
-    ' Dim edcNames(6) As String
-    ' arrInd = 0
-    ' For Each cell In EDCnameRange
-    '       edcNames(arrInd) = cell.Value
-    '       Debug.print edcNames(arrInd)
-    '       arrInd = arrInd + 1
-    ' Next cell
-
     Dim edcNames As Variant
-    'Dim arr(6) As String
-    'edcNames = arr
     edcNames = getEDCnames()
 
-    '62 Blue Tab color '
-    '-4142 Clear Tab color '
+    'Define the tab color indices of the sheets we will need to use
     blueTabColor = 62
     clearTabColor = -4142
 
-    For Each sht In mainWB.Sheets
+    For Each edc In edcNames
+        If edc = edcNames(0) Then
+            AddNew (edc)
 
-        If sht.Tab.ColorIndex = 62 Or sht.Tab.ColorIndex = -4142 Then
-            ' Debug.Print sht.Name
-            ' Debug.Print sht.Tab.ColorIndex
-            ' Debug.Print vbnewline
+            For Each sht In mainWB.Sheets
 
-            If sht.Name = "InteriorLightings" Then Call filterSheetByEDCname(sht.Name, edcNames(0))
+                If sht.Tab.ColorIndex = 62 Or sht.Tab.ColorIndex = -4142 Then
 
+                    If sht.Name = "InteriorLightings" Then Call filterSheetByEDCname(mainWB, sht.Name, edcNames(0))
+
+                End If
+                'sht.AutoFilterMode = False
+            Next sht
         End If
-        sht.AutoFilterMode = False
-    Next sht
+
+    Next edc
 
 End Sub
 
 Function getEDCnames()
+    'Grabs the EDC names we will need to filter by from a row in the Index Sheet and adds the names to an array for easy retrieval
 
     'Lets grab the EDC names from the Index Sheet
     Dim EDCnameRange As Range
@@ -63,16 +53,32 @@ Function getEDCnames()
 
 End Function
 
-Sub filterSheetByEDCname(ByVal sheetName As String, ByVal edcName As String)
+Sub filterSheetByEDCname(mainWB As Workbook, ByVal sheetName As String, ByVal edcName As String)
 
     'Lets select the entire usable range'
     Dim r As Range
-    Set r = ActiveWorkbook.Sheets(sheetName).UsedRange
+    Set r = mainWB.Sheets(sheetName).UsedRange
 
     Debug.Print sheetName
     Debug.Print edcName
     Debug.Print r.Rows.Count
 
+    'Dim filteredRange As Range
+
+
+    r.AutoFilter _
+         field:=13, _
+         Criteria1:=edcName, _
+         VisibleDropDown:=False
 End Sub
 
+
+Sub AddNew(ByVal bookName As String)
+    ' For creating new Workbooks
+    Set NewBook = Workbooks.Add
+        With NewBook
+            .Title = bookName
+            .SaveAs Filename:=ThisWorkbook.Path & "\" & bookName & ".xls"
+        End With
+End Sub
 
