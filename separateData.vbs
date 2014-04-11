@@ -16,9 +16,10 @@ Sub separateData()
 
             For Each sht In mainWB.Sheets
 
-                If sht.Tab.ColorIndex = 62 Or sht.Tab.ColorIndex = -4142 Then
+                If sht.Tab.ColorIndex = 62 Or sht.Tab.ColorIndex = 62 Then
 
-                    If sht.Name = "InteriorLightings" Then Call filterSheetByEDCname(mainWB, sht.Name, edcNames(0))
+                    'If sht.Name = "InteriorLightings" Then Call filterSheetByEDCname(mainWB, sht.Name, edcNames(0))
+                    Call filterSheetByEDCname(mainWB, sht.Name, edcNames(0))
 
                 End If
                 'sht.AutoFilterMode = False
@@ -64,15 +65,42 @@ Sub filterSheetByEDCname(mainWB As Workbook, ByVal sheetName As String, ByVal ed
 
     Debug.Print edcWorkbook.Sheets.Count
 
-    Debug.Print sheetName
-    Debug.Print edcName
-    Debug.Print r.Rows.Count
+    ' Debug.Print sheetName
+    ' Debug.Print edcName
+    ' Debug.Print r.Rows.Count
+
+    'Lets find the header cell that contains "EDC Name"
+    'mainWB.Sheets(sheetName).Range("A1").Select
+
+    Dim edcNameCell As Range
+    Set edcNameCell = mainWB.Sheets(sheetName).Cells.find(What:="EDC Name", After:=ActiveCell, LookIn:=xlFormulas, LookAt:= _
+    xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=True _
+    , SearchFormat:=False)
+
+    Debug.Print "EDC Name Column: " & edcNameCell.Column
 
     'Dim filteredRange As Range
     r.AutoFilter _
-         field:=13, _
+         field:=edcNameCell.Column, _
          Criteria1:=edcName, _
          VisibleDropDown:=False
+
+    r.SpecialCells(xlCellTypeVisible).Copy
+
+    If edcWorkbook.Sheets(1).Name = "Sheet1" Then
+        ' If the first Sheet is named Sheet1 then we are pasting into the EDC workbook for the first time and do not have
+        ' to create a new sheet. Instead we paste into Sheet1 and rename it to the sheet name we are copying from
+        'edcWorkbook.Sheets("Sheet1").Paste
+        edcWorkbook.Sheets("Sheet1").Name = sheetName
+    Else 
+        ' If the first sheet is not Sheet1 then we need to create a new sheet to hold our copied data 
+        edcWorkbook.Sheets.Add(After:=edcWorkbook.Sheets(edcWorkbook.Sheets.Count)).Name = sheetName
+    End If
+
+    edcWorkbook.Sheets(sheetName).Paste
+    edcWorkbook.Sheets(sheetName).Columns.AutoFit
+    edcWorkbook.Sheets(sheetName).Range("A1").Select
+
 End Sub
 
 
@@ -89,3 +117,11 @@ Sub AddNew(ByVal bookName As String)
     Application.DisplayAlerts = True
 End Sub
 
+
+Sub unfilterSheets()
+
+For Each sht In ActiveWorkbook.Sheets
+    sht.AutoFilterMode = False
+Next sht
+
+End Sub
