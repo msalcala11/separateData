@@ -24,7 +24,6 @@ Sub separateData()
                 
             Next sht
 
-
             ' Unfilter the sheet we copied from
             sht.AutoFilterMode = False
             ' Close the EDC Workbook
